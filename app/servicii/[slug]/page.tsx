@@ -3,7 +3,10 @@ import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Accordion } from "@/components/ui/accordion";
 import { getServiceBySlug, services } from "@/lib/data/services";
+import { getServicePrices, formatPriceLabel } from "@/lib/data/db-services";
 import { getWhatsappHref } from "@/lib/constants";
+
+export const revalidate = 300;
 
 export function generateStaticParams() {
   return services.map((s) => ({ slug: s.slug }));
@@ -25,6 +28,10 @@ export default async function ServicePage({ params }: PageProps<"/servicii/[slug
   const { slug } = await params;
   const service = getServiceBySlug(slug);
   if (!service) notFound();
+
+  const dbPrices = await getServicePrices();
+  const dbPrice = dbPrices[service.slug];
+  const priceLabel = dbPrice ? formatPriceLabel(dbPrice.base_price, service.priceLabel) : service.priceLabel;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -96,9 +103,10 @@ export default async function ServicePage({ params }: PageProps<"/servicii/[slug
       <section className="mx-auto max-w-4xl px-4 py-12">
         <h2 className="font-heading text-2xl font-bold">Preț</h2>
         <p className="mt-3 text-foreground/80">
-          Tratament {service.shortName.toLowerCase()} {service.priceLabel}. Prețul final depinde de suprafață și
+          Tratament {service.shortName.toLowerCase()} {priceLabel}. Prețul final depinde de suprafață și
           nivelul infestării — primești o estimare înainte de confirmarea programării.
         </p>
+        {dbPrice?.price_note && <p className="mt-2 text-sm text-foreground/50">{dbPrice.price_note}</p>}
       </section>
 
       <section className="bg-white">

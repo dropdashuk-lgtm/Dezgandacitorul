@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
 
   const supabase = getSupabaseAdmin();
   if (supabase) {
-    const { error } = await supabase.from("contact_messages").insert(data);
+    const { error } = await supabase.from("dz_contact_messages").insert(data);
     if (error) console.error("[contact] insert error", error);
   } else {
     console.warn("[contact] Supabase neconfigurat — mesajul nu a fost persistat.", data);

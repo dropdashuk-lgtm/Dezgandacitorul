@@ -20,39 +20,68 @@ npm run dev
 
 Deschide [http://localhost:3000](http://localhost:3000).
 
-Fără variabilele de mediu Supabase/Resend completate, aplicația rulează normal — formularele de
-programare și contact răspund cu succes, dar cererile sunt doar logate în consolă (nu sunt persistate)
-și emailurile nu sunt trimise. Vezi `lib/supabase/server.ts` și `lib/email.ts`.
+Fără variabilele de mediu Supabase completate, site-ul public funcționează (formularele de programare
+și contact răspund cu succes, dar cererile sunt doar logate în consolă, nu persistate), însă `/admin` și
+`/cont` necesită Supabase configurat pentru autentificare. Fără `RESEND_API_KEY`, emailurile nu sunt
+trimise. Vezi `lib/supabase/server.ts` și `lib/email.ts`.
+
+> Proiectul Supabase live pentru acest site rulează schema din `supabase/schema.sql` (tabele `dz_*`,
+> prefixate pentru că baza e partajată cu o altă aplicație). Cere URL-ul, anon key și service role key
+> administratorului proiectului pentru `.env.local` / variabilele de mediu din Vercel.
 
 ## Structură
 
 ```text
-app/                 pagini (App Router): homepage, servicii, agricultura, firme, programare, admin, cont...
-app/api/             route handlers: /api/bookings, /api/contact
-components/          componente UI, layout, booking stepper, secțiuni homepage
-lib/                 utilitare, date statice (servicii/zone/FAQ/ghiduri), client Supabase, email, rate-limit
-types/               tipuri TypeScript comune
-supabase/schema.sql  schema inițială a bazei de date (tabele + RLS)
-docs/MASTER_PLAN.md  documentul complet de produs
+app/                          pagini publice: homepage, servicii, agricultura, firme, programare...
+app/admin/login                autentificare admin (fără layout admin)
+app/admin/(dashboard)          dashboard admin protejat: /admin, /preturi, /clienti, /clienti/[id], /cereri
+app/cont/login, /inregistrare  autentificare + înregistrare client (fără layout cont)
+app/cont/(dashboard)           cont client protejat: /cont, /cereri
+app/api/                       route handlers: bookings, contact, cont/profile, urgent-requests,
+                                admin/services, admin/documents, admin/urgent-requests/[id]
+components/                    UI, layout, booking stepper, secțiuni homepage, auth, admin, cont
+lib/                           date statice, clienți Supabase (browser/server/admin), email, rate-limit, auth guards
+middleware.ts                  protejează /admin și /cont (sesiune + rol ADMIN pentru /admin)
+types/                         tipuri TypeScript comune
+supabase/schema.sql            schema completă a bazei de date (tabele dz_*, RLS, storage buckets)
+docs/MASTER_PLAN.md            documentul complet de produs
 ```
 
-## Stadiu (Sprint 1 — Fundament + Website, conform roadmap din MASTER_PLAN.md §49)
+## Autentificare & roluri
+
+- **Admin**: `admin@dezgandacitorul.ro`, creat direct în Supabase Auth (parolă generată — cere-o
+  administratorului sesiunii care a provizionat contul; nu e stocată în acest repo). Autentificare la
+  `/admin/login`. Rolul `ADMIN` este ținut în `dz_profiles.role`.
+- **Clienți**: se înregistrează singuri la `/cont/inregistrare` (email + parolă). La prima intrare li se
+  cere să completeze profilul (nume, telefon, adresă), care creează rândul din `dz_customers` legat de
+  contul lor.
+
+## Funcționalități cont client / admin
+
+- **Prețuri estimative** — adminul le editează din `/admin/preturi` (`dz_service_types.base_price` +
+  `price_note`); paginile publice (`/preturi`, `/servicii/[slug]`) le preiau live, cu revalidare la 5 minute,
+  și cad pe valorile statice din `lib/data/services.ts` dacă Supabase nu e disponibil.
+- **Documente & contracte per client** — adminul încarcă documente (contract, factură, raport etc.) per
+  client din `/admin/clienti/[id]`, stocate privat în bucket-ul `dz-documents`. Clientul le vede și le
+  descarcă din `/cont`, prin URL-uri semnate (expiră după o oră).
+- **Cereri urgente** — clientul autentificat poate cere din `/cont/cereri` documente sau o intervenție
+  urgentă; adminul le vede și le actualizează statusul (Nouă / În lucru / Rezolvată) din `/admin/cereri`.
+
+## Stadiu (Sprint 1-2, conform roadmap din MASTER_PLAN.md §49)
 
 Implementat:
 
-- Homepage complet (hero, widget de programare, servicii, ploșnițe, cum funcționează, zone, de ce noi,
-  agricultură, B2B, recenzii, FAQ, CTA final)
-- Pagini servicii (`/servicii`, `/servicii/[slug]`), inclusiv pagina specială ploșnițe
-- Widget/pagină de programare funcțional(ă) (`/programare`), cu upload foto și trimitere spre `/api/bookings`
-- Pagini agricultură, firme, prețuri, zone (+ pagini per zonă), urgențe, despre noi, ghiduri, contact, FAQ
-- Mockup-uri pentru `/cont` și `/admin` (fără autentificare încă)
-- Schema inițială Supabase cu RLS de bază
-- SEO de bază: metadata, sitemap.xml, robots.txt, JSON-LD (LocalBusiness, Service, FAQPage)
+- Homepage complet, pagini servicii (inclusiv ploșnițe), agricultură, firme, prețuri, zone, ghiduri, FAQ,
+  contact, urgențe
+- Booking funcțional (`/programare`) cu upload foto, legat automat de contul clientului dacă e autentificat
+- Autentificare completă (Supabase Auth) pentru admin și clienți, cu RLS pe toate tabelele sensibile
+- Admin: dashboard cu KPI reale, gestionare prețuri, listă clienți + documente per client, cereri urgente
+- Cont client: dashboard cu programări, documente, cereri urgente
+- SEO de bază: metadata, sitemap.xml, robots.txt, JSON-LD
 
 Rămas de făcut pentru lansare (vezi §67 Definition of Done din master plan):
 
-- Conectarea reală a proiectului Supabase (rulare `supabase/schema.sql`, bucket `booking-photos`)
-- Autentificare (Supabase Auth) pentru `/cont` și `/admin`, cu RLS complet
 - Analytics (Google Analytics, Search Console, Microsoft Clarity)
 - Texte juridice finale (confidențialitate, cookies, termeni) — verificate juridic
-- Testare completă a formularelor și backup pentru baza de date
+- Notificări automate (SMS/WhatsApp) pentru schimbări de status ale programării
+- Testare completă end-to-end și backup pentru baza de date
