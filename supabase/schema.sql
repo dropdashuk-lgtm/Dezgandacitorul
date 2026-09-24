@@ -103,8 +103,9 @@ create table if not exists dz_invoices (
 
 create table if not exists dz_reviews (
   id uuid primary key default gen_random_uuid(),
-  customer_id uuid not null references dz_customers (id) on delete cascade,
+  customer_id uuid references dz_customers (id) on delete cascade,
   booking_id uuid references dz_bookings (id) on delete set null,
+  author_name text,
   rating int not null check (rating between 1 and 5),
   comment text,
   approved boolean not null default false,
@@ -290,6 +291,8 @@ insert into dz_service_types (name, slug, category, base_price, price_note) valu
   ('Deratizare profesională', 'deratizare', 'rezidential', 220, 'Preț estimativ'),
   ('Dezinsecție generală', 'dezinsectie', 'rezidential', 200, 'Preț estimativ'),
   ('Dezinfecție spații', 'dezinfectie', 'rezidential', 200, 'Preț estimativ'),
+  ('Control porumbei și păsări', 'porumbei', 'rezidential', 300, 'Preț estimativ — depinde de suprafață și metoda de instalare'),
+  ('Tratamente exterioare grădină și curte', 'gradina', 'rezidential', 220, 'Preț estimativ — depinde de suprafața curții/grădinii'),
   ('Evaluare agricultură', 'agricultura', 'agricultura', null, 'Ofertă personalizată — evaluată individual, fără preț fix afișat')
 on conflict (slug) do nothing;
 

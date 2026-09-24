@@ -21,6 +21,8 @@ const jsonLd = {
   url: "https://dezgandacitorul.ro",
 };
 
+export const revalidate = 300;
+
 export default function Home() {
   return (
     <>
