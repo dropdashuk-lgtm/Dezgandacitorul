@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Phone } from "lucide-react";
+import { Phone, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SITE } from "@/lib/constants";
 
@@ -40,6 +40,13 @@ export function Header() {
             <Phone className="h-4 w-4" />
             {SITE.phone}
           </a>
+          <Link
+            href="/cont"
+            aria-label="Contul meu"
+            className="hidden items-center justify-center rounded-full p-2 text-foreground/70 hover:bg-brand/10 hover:text-brand sm:flex"
+          >
+            <User className="h-5 w-5" />
+          </Link>
           <Button href="/programare" size="sm">
             Programează
           </Button>

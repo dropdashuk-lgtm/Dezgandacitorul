@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getSupabaseAdmin } from "@/lib/supabase/server";
+import { createSupabaseServerClient, getSupabaseAdmin } from "@/lib/supabase/server";
 import { sendEmail } from "@/lib/email";
 import { rateLimit } from "@/lib/rate-limit";
 
@@ -55,28 +55,61 @@ export async function POST(request: NextRequest) {
   let bookingId: string | null = null;
 
   if (supabase) {
-    const { data: customer, error: customerError } = await supabase
-      .from("customers")
-      .insert({
-        name: data.name,
-        phone: data.phone,
-        email: data.email || null,
-        address: data.address,
-        city: data.city,
-        postal_code: data.postalCode,
-      })
-      .select("id")
-      .single();
+    // Dacă utilizatorul e autentificat, legăm rezervarea de contul lui.
+    const sessionClient = await createSupabaseServerClient();
+    const sessionUser = sessionClient ? (await sessionClient.auth.getUser()).data.user : null;
 
-    if (customerError) {
-      console.error("[bookings] customer insert error", customerError);
-      return NextResponse.json({ error: "Eroare la salvarea datelor." }, { status: 500 });
+    let customerId: string | null = null;
+
+    if (sessionUser) {
+      const { data: existing } = await supabase
+        .from("dz_customers")
+        .select("id")
+        .eq("user_id", sessionUser.id)
+        .maybeSingle();
+
+      if (existing) {
+        customerId = existing.id;
+        await supabase
+          .from("dz_customers")
+          .update({
+            name: data.name,
+            phone: data.phone,
+            email: data.email || sessionUser.email || null,
+            address: data.address,
+            city: data.city,
+            postal_code: data.postalCode,
+          })
+          .eq("id", existing.id);
+      }
+    }
+
+    if (!customerId) {
+      const { data: customer, error: customerError } = await supabase
+        .from("dz_customers")
+        .insert({
+          user_id: sessionUser?.id ?? null,
+          name: data.name,
+          phone: data.phone,
+          email: data.email || sessionUser?.email || null,
+          address: data.address,
+          city: data.city,
+          postal_code: data.postalCode,
+        })
+        .select("id")
+        .single();
+
+      if (customerError) {
+        console.error("[bookings] customer insert error", customerError);
+        return NextResponse.json({ error: "Eroare la salvarea datelor." }, { status: 500 });
+      }
+      customerId = customer.id;
     }
 
     const { data: booking, error: bookingError } = await supabase
-      .from("bookings")
+      .from("dz_bookings")
       .insert({
-        customer_id: customer.id,
+        customer_id: customerId,
         service_slug: data.serviceSlug,
         property_type: data.propertyType,
         property_size: data.propertySize,
@@ -100,15 +133,15 @@ export async function POST(request: NextRequest) {
     for (const photo of photos) {
       const bytes = new Uint8Array(await photo.arrayBuffer());
       const path = `${bookingId}/${crypto.randomUUID()}-${photo.name}`;
-      const { error: uploadError } = await supabase.storage.from("booking-photos").upload(path, bytes, {
+      const { error: uploadError } = await supabase.storage.from("dz-booking-photos").upload(path, bytes, {
         contentType: photo.type,
       });
       if (uploadError) {
         console.error("[bookings] photo upload error", uploadError);
         continue;
       }
-      const { data: publicUrl } = supabase.storage.from("booking-photos").getPublicUrl(path);
-      await supabase.from("booking_photos").insert({ booking_id: bookingId, file_url: publicUrl.publicUrl });
+      const { data: publicUrl } = supabase.storage.from("dz-booking-photos").getPublicUrl(path);
+      await supabase.from("dz_booking_photos").insert({ booking_id: bookingId, file_url: publicUrl.publicUrl });
     }
   } else {
     console.warn("[bookings] Supabase neconfigurat — cererea nu a fost persistată.", data);
