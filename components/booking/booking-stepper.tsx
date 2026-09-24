@@ -15,6 +15,8 @@ const problemOptions = [
   { value: "viespi", label: "Viespi" },
   { value: "tantari", label: "Țânțari" },
   { value: "molii", label: "Molii" },
+  { value: "porumbei", label: "Porumbei / păsări" },
+  { value: "gradina", label: "Grădină / curte" },
   { value: "dezinfectie", label: "Dezinfecție" },
   { value: "nu-stiu", label: "Nu știu" },
 ];
@@ -53,7 +55,7 @@ const dateOptions = ["Astăzi", "Mâine", "Această săptămână", "Aleg altă 
 const TOTAL_STEPS = 8;
 
 interface FormState {
-  problem: string;
+  problems: string[];
   propertyType: PropertyType | "";
   propertySize: string;
   infestationLevel: InfestationLevel | "";
@@ -70,7 +72,7 @@ interface FormState {
 }
 
 const initialState: FormState = {
-  problem: "",
+  problems: [],
   propertyType: "",
   propertySize: "",
   infestationLevel: "",
@@ -116,6 +118,50 @@ function OptionGrid<T extends string>({
   );
 }
 
+function MultiOptionGrid({
+  options,
+  values,
+  onChange,
+}: {
+  options: { value: string; label: string }[];
+  values: string[];
+  onChange: (v: string[]) => void;
+}) {
+  function toggle(value: string) {
+    onChange(values.includes(value) ? values.filter((v) => v !== value) : [...values, value]);
+  }
+
+  return (
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      {options.map((opt) => {
+        const checked = values.includes(opt.value);
+        return (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={() => toggle(opt.value)}
+            aria-pressed={checked}
+            className={cn(
+              "flex items-center gap-2 rounded-xl border-2 px-4 py-3 text-sm font-medium transition-colors",
+              checked ? "border-brand bg-brand text-white" : "border-black/10 bg-white hover:border-brand/50"
+            )}
+          >
+            <span
+              className={cn(
+                "flex h-4 w-4 shrink-0 items-center justify-center rounded border",
+                checked ? "border-white bg-white/20" : "border-black/20"
+              )}
+            >
+              {checked && <Check className="h-3 w-3" />}
+            </span>
+            {opt.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export function BookingStepper({ compact = false }: { compact?: boolean }) {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<FormState>(initialState);
@@ -127,7 +173,7 @@ export function BookingStepper({ compact = false }: { compact?: boolean }) {
 
   const canGoNext = (() => {
     switch (step) {
-      case 1: return !!form.problem;
+      case 1: return form.problems.length > 0;
       case 2: return !!form.propertyType;
       case 3: return !!form.propertySize;
       case 4: return !!form.infestationLevel;
@@ -142,8 +188,16 @@ export function BookingStepper({ compact = false }: { compact?: boolean }) {
   async function handleSubmit() {
     setStatus("submitting");
     try {
+      const [primaryProblem, ...extraProblems] = form.problems;
+      const extraLabels = extraProblems.map(
+        (slug) => problemOptions.find((o) => o.value === slug)?.label ?? slug
+      );
+      const notes = extraLabels.length
+        ? `Servicii selectate suplimentar: ${extraLabels.join(", ")}.${form.notes ? ` ${form.notes}` : ""}`
+        : form.notes;
+
       const fd = new FormData();
-      fd.append("serviceSlug", form.problem);
+      fd.append("serviceSlug", primaryProblem);
       fd.append("propertyType", form.propertyType);
       fd.append("propertySize", form.propertySize);
       fd.append("infestationLevel", form.infestationLevel);
@@ -157,7 +211,7 @@ export function BookingStepper({ compact = false }: { compact?: boolean }) {
       fd.append("phone", form.phone);
       fd.append("email", form.email);
       fd.append("address", form.address);
-      fd.append("notes", form.notes);
+      fd.append("notes", notes);
       form.photos.forEach((file) => fd.append("photos", file));
 
       const res = await fetch("/api/bookings", { method: "POST", body: fd });
@@ -201,8 +255,9 @@ export function BookingStepper({ compact = false }: { compact?: boolean }) {
 
       {step === 1 && (
         <div>
-          <h3 className="font-heading mb-4 text-lg font-bold">Ce problemă ai?</h3>
-          <OptionGrid options={problemOptions} value={form.problem} onChange={(v) => update("problem", v)} />
+          <h3 className="font-heading mb-1 text-lg font-bold">Ce problemă ai?</h3>
+          <p className="mb-4 text-sm text-foreground/60">Poți bifa mai multe, dacă ai mai multe probleme.</p>
+          <MultiOptionGrid options={problemOptions} values={form.problems} onChange={(v) => update("problems", v)} />
         </div>
       )}
 

@@ -30,8 +30,9 @@ const plans = [
 export default function FirmePage() {
   return (
     <div>
-      <section className="bg-gradient-to-b from-brand to-brand-light text-white">
-        <div className="mx-auto max-w-4xl px-4 py-16">
+      <section className="relative overflow-hidden bg-gradient-to-b from-brand to-brand-light text-white">
+        <div className="bg-dot-pattern pointer-events-none absolute inset-0 opacity-30" />
+        <div className="relative mx-auto max-w-4xl px-4 py-16">
           <h1 className="font-heading text-4xl font-bold">Servicii pentru firme</h1>
           <p className="mt-4 max-w-2xl text-white/90">
             Contracte recurente, documentație și un portal dedicat pentru clienți business.

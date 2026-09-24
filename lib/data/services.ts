@@ -167,6 +167,56 @@ export const services: ServiceType[] = [
     faq: [{ question: "Este periculos să elimin singur un cuib de viespi?", answer: "Da, recomandăm intervenție profesională, mai ales pentru cuiburi mari sau greu accesibile." }],
   },
   {
+    slug: "porumbei",
+    name: "Control porumbei și păsări",
+    shortName: "Porumbei / păsări",
+    category: "rezidential",
+    basePrice: 300,
+    priceLabel: "de la 300 lei",
+    description:
+      "Soluții umane de îndepărtare și prevenție pentru porumbei și alte păsări — plase, țepi anti-așezare și curățare/dezinfecție a zonelor afectate.",
+    symptoms: [
+      "excremente pe balcoane, acoperiș sau pervaze",
+      "cuiburi la streașină, în poduri sau pe conducte",
+      "zgomote persistente pe acoperiș",
+      "risc de mirosuri și boli transmise prin excremente",
+    ],
+    process: [
+      "Evaluarea zonelor de cuibărit și acces",
+      "Montarea plaselor sau țepilor anti-așezare",
+      "Curățare și dezinfecție a suprafețelor afectate",
+      "Recomandări de prevenție pe termen lung",
+    ],
+    faq: [
+      { question: "Metodele folosite fac rău păsărilor?", answer: "Nu, folosim exclusiv metode umane de descurajare (plase, țepi), fără a răni păsările." },
+      { question: "Cât durează efectul?", answer: "Instalațiile (plase, țepi) au efect pe termen lung, cu verificări periodice recomandate." },
+    ],
+  },
+  {
+    slug: "gradina",
+    name: "Tratamente exterioare grădină și curte",
+    shortName: "Grădină / curte",
+    category: "rezidential",
+    basePrice: 220,
+    priceLabel: "de la 220 lei",
+    description:
+      "Tratamente pentru gazon, tufe și zone verzi private împotriva insectelor și dăunătorilor, cu protecție pentru plante și animale de companie.",
+    symptoms: [
+      "insecte vizibile pe gazon sau în tufe",
+      "zone uscate sau deteriorate pe gazon",
+      "activitate crescută de furnici, țânțari sau alți dăunători în curte",
+    ],
+    process: [
+      "Evaluarea suprafeței și a tipului de vegetație",
+      "Tratament exterior adaptat zonei verzi",
+      "Recomandări de întreținere și prevenție",
+    ],
+    faq: [
+      { question: "Este sigur pentru animale de companie?", answer: "Folosim produse cu timp de așteptare clar comunicat; îți spunem exact când e sigur să reintri în curte cu animalele." },
+      { question: "Tratați și grădini mari sau curți de firmă?", answer: "Da — pentru suprafețe mari sau spații comerciale oferim ofertă personalizată." },
+    ],
+  },
+  {
     slug: "deratizare",
     name: "Deratizare profesională",
     shortName: "Deratizare",

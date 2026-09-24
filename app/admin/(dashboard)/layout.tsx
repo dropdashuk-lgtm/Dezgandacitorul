@@ -6,6 +6,7 @@ const adminNav = [
   { href: "/admin/preturi", label: "Prețuri" },
   { href: "/admin/clienti", label: "Clienți" },
   { href: "/admin/cereri", label: "Cereri urgente" },
+  { href: "/admin/recenzii", label: "Recenzii" },
 ];
 
 export default function AdminDashboardLayout({ children }: { children: React.ReactNode }) {

@@ -1,16 +1,18 @@
+import { Grape, TreeDeciduous, Warehouse, Sprout } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const categories = [
-  { title: "Vii", text: "Monitorizare, tratamente și consultanță pentru dăunători specifici viței de vie." },
-  { title: "Livezi", text: "Monitorizare și intervenții programate pentru pomii fructiferi, cu plan sezonier." },
-  { title: "Ferme", text: "Protecție împotriva rozătoarelor și insectelor în depozite, silozuri și clădiri tehnice." },
-  { title: "Sere", text: "Tratamente adaptate și monitorizare periodică a insectelor din sere." },
+  { title: "Vii", icon: Grape, text: "Monitorizare, tratamente și consultanță pentru dăunători specifici viței de vie." },
+  { title: "Livezi", icon: TreeDeciduous, text: "Monitorizare și intervenții programate pentru pomii fructiferi, cu plan sezonier." },
+  { title: "Ferme", icon: Warehouse, text: "Protecție împotriva rozătoarelor și insectelor în depozite, silozuri și clădiri tehnice." },
+  { title: "Sere", icon: Sprout, text: "Tratamente adaptate și monitorizare periodică a insectelor din sere." },
 ];
 
 export function AgricultureSection() {
   return (
-    <section className="bg-brand text-white">
-      <div className="mx-auto max-w-6xl px-4 py-16">
+    <section className="relative overflow-hidden bg-brand text-white">
+      <div className="bg-dot-pattern pointer-events-none absolute inset-0 opacity-20" />
+      <div className="relative mx-auto max-w-6xl px-4 py-16">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="font-heading text-3xl font-bold">Protecție pentru agricultură</h2>
           <p className="mt-2 text-white/80">
@@ -19,8 +21,11 @@ export function AgricultureSection() {
         </div>
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {categories.map((cat) => (
-            <div key={cat.title} className="rounded-2xl bg-white/10 p-6">
-              <h3 className="font-heading font-bold">{cat.title}</h3>
+            <div key={cat.title} className="rounded-2xl bg-white/10 p-6 backdrop-blur-sm">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 text-white">
+                <cat.icon className="h-5 w-5" />
+              </div>
+              <h3 className="font-heading mt-4 font-bold">{cat.title}</h3>
               <p className="mt-2 text-sm text-white/80">{cat.text}</p>
             </div>
           ))}
