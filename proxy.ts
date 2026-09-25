@@ -4,7 +4,7 @@ import { createServerClient } from "@supabase/ssr";
 const PUBLIC_ADMIN_PATHS = ["/admin/login"];
 const PUBLIC_CONT_PATHS = ["/cont/login", "/cont/inregistrare"];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
